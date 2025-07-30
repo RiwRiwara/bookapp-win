@@ -1,0 +1,227 @@
+/* Reader Settings */
+.reader-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.reader-page canvas {
+    max-width: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 16px;
+}
+
+.reader-page .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.reader-page .bg-blue-100 {
+    background-color: #dbeafe;
+}
+
+.reader-page .bg-blue-200 {
+    background-color: #bfdbfe;
+}
+
+.reader-page .hover\:bg-blue-200:hover {
+    background-color: #bfdbfe;
+}
+
+.reader-page .bg-gray-100 {
+    background-color: #f3f4f6;
+}
+
+.reader-page .bg-gray-200 {
+    background-color: #e5e7eb;
+}
+
+.reader-page .text-gray-500 {
+    color: #6b7280;
+}
+
+.reader-page .text-red-500 {
+    color: #ef4444;
+}
+
+.reader-page .bg-blue-500 {
+    background-color: #3b82f6;
+}
+
+.reader-page .text-white {
+    color: #ffffff;
+}
+
+.reader-page .bg-blue-600 {
+    background-color: #2563eb;
+}
+
+.reader-page .hover\:bg-blue-700:hover {
+    background-color: #1d4ed8;
+}
+
+.reader-page .rounded {
+    border-radius: 0.25rem;
+}
+
+.reader-page .rounded-full {
+    border-radius: 9999px;
+}
+
+.reader-page .p-2 {
+    padding: 0.5rem;
+}
+
+.reader-page .p-3 {
+    padding: 0.75rem;
+}
+
+.reader-page .p-4 {
+    padding: 1rem;
+}
+
+.reader-page .p-8 {
+    padding: 2rem;
+}
+
+.reader-page .m-4 {
+    margin: 1rem;
+}
+
+.reader-page .mr-2 {
+    margin-right: 0.5rem;
+}
+
+.reader-page .ml-2 {
+    margin-left: 0.5rem;
+}
+
+.reader-page .mt-6 {
+    margin-top: 1.5rem;
+}
+
+.reader-page .flex {
+    display: flex;
+}
+
+.reader-page .flex-col {
+    flex-direction: column;
+}
+
+.reader-page .flex-row {
+    flex-direction: row;
+}
+
+.reader-page .items-center {
+    align-items: center;
+}
+
+.reader-page .justify-center {
+    justify-content: center;
+}
+
+.reader-page .justify-between {
+    justify-content: space-between;
+}
+
+.reader-page .gap-2 {
+    gap: 0.5rem;
+}
+
+.reader-page .gap-6 {
+    gap: 1.5rem;
+}
+
+.reader-page .w-full {
+    width: 100%;
+}
+
+.reader-page .h-full {
+    height: 100%;
+}
+
+.reader-page .h-64 {
+    height: 16rem;
+}
+
+.reader-page .text-sm {
+    font-size: 0.875rem;
+}
+
+.reader-page .text-xl {
+    font-size: 1.25rem;
+}
+
+.reader-page .text-2xl {
+    font-size: 1.5rem;
+}
+
+.reader-page .font-bold {
+    font-weight: 700;
+}
+
+.reader-page .sticky {
+    position: sticky;
+}
+
+.reader-page .top-0 {
+    top: 0;
+}
+
+.reader-page .z-20 {
+    z-index: 20;
+}
+
+.reader-page .z-50 {
+    z-index: 50;
+}
+
+.reader-page .fixed {
+    position: fixed;
+}
+
+.reader-page .inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.reader-page .top-6 {
+    top: 1.5rem;
+}
+
+.reader-page .right-6 {
+    right: 1.5rem;
+}
+
+.reader-page .right-24 {
+    right: 6rem;
+}
+
+.reader-page .mt-3 {
+    margin-top: 0.75rem;
+}
+
+.reader-page .max-w-full {
+    max-width: 100%;
+}
+
+.reader-page .overflow-auto {
+    overflow: auto;
+}
+
+.reader-page .transition {
+    transition: all 0.3s ease;
+}
+
+.reader-page .transition-all {
+    transition-property: all;
+}
+
+.reader-page .duration-300 {
+    transition-duration: 300ms;
+}
+
+.reader-page .disabled\:opacity-50:disabled {
+    opacity: 0.5;
+}
