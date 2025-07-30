@@ -6,7 +6,6 @@ import {
   FiChevronRight,
   FiSettings,
   FiGrid,
-  FiMaximize,
   FiMinimize,
   FiBookmark,
 } from 'react-icons/fi';
@@ -14,59 +13,9 @@ import { IoMdArrowRoundBack } from 'react-icons/io';
 import ReaderSettings from '../components/ReaderSettings';
 import OverviewGrid from '../components/OverviewGrid';
 import BookmarkSidebar from '../components/BookmarkSidebar';
-import { bookService } from '../services';
+
 import { Book } from '../services/bookService';
 import './ReaderPage.css';
-
-// Enhanced protection for PDF content
-const addPDFProtection = () => {
-  // Disable text selection on PDF content
-  document.body.style.userSelect = 'none';
-  document.body.style.webkitUserSelect = 'none';
-
-  // Add watermark overlay
-  const watermark = document.createElement('div');
-  watermark.id = 'pdf-watermark';
-  watermark.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 9999;
-    background-image: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 100px,
-      rgba(255, 0, 0, 0.03) 100px,
-      rgba(255, 0, 0, 0.03) 200px
-    );
-    font-family: Arial, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 0, 0, 0.1);
-    font-size: 48px;
-    font-weight: bold;
-    transform: rotate(-45deg);
-  `;
-  watermark.textContent = 'PROTECTED CONTENT';
-
-  if (!document.getElementById('pdf-watermark')) {
-    document.body.appendChild(watermark);
-  }
-};
-
-const removePDFProtection = () => {
-  document.body.style.userSelect = '';
-  document.body.style.webkitUserSelect = '';
-
-  const watermark = document.getElementById('pdf-watermark');
-  if (watermark) {
-    watermark.remove();
-  }
-};
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js';
@@ -256,11 +205,10 @@ const ReaderPage: React.FC<ReaderPageProps> = ({ book, onBack }) => {
     };
   }, [book.bookId]);
 
-  // Enable PDF protection
+  // PDF protection cleanup effect
   useEffect(() => {
-
     return () => {
-      removePDFProtection();
+      // Cleanup any PDF protection if needed
     };
   }, []);
 
@@ -283,6 +231,7 @@ const ReaderPage: React.FC<ReaderPageProps> = ({ book, onBack }) => {
           await pageObj.render({
             canvasContext: context,
             viewport,
+            canvas,
           }).promise;
           console.log(
             `[ReaderPage] Rendered single page ${page} at zoom ${zoom}`,
@@ -326,6 +275,7 @@ const ReaderPage: React.FC<ReaderPageProps> = ({ book, onBack }) => {
           await leftPage.render({
             canvasContext: tempContext,
             viewport: scaledLeftViewport,
+            canvas: tempCanvas,
           }).promise;
 
           // Draw left page on main canvas
@@ -346,6 +296,7 @@ const ReaderPage: React.FC<ReaderPageProps> = ({ book, onBack }) => {
             await rightPage.render({
               canvasContext: tempContext,
               viewport: scaledRightViewport,
+              canvas: tempCanvas,
             }).promise;
 
             // Draw right page on main canvas with offset
@@ -377,7 +328,7 @@ const ReaderPage: React.FC<ReaderPageProps> = ({ book, onBack }) => {
     const totalPages = pdf.numPages;
 
     for (let i = 1; i <= totalPages; i += batchSize) {
-      const pagePromises = [];
+      const pagePromises: Promise<void>[] = [];
 
       for (let j = i; j < Math.min(i + batchSize, totalPages + 1); j++) {
         if (thumbnails[j]) continue;
@@ -396,6 +347,7 @@ const ReaderPage: React.FC<ReaderPageProps> = ({ book, onBack }) => {
               await page.render({
                 canvasContext: context,
                 viewport,
+                canvas,
               }).promise;
 
               setThumbnails((prev) => ({

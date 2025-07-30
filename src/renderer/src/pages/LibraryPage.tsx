@@ -15,7 +15,7 @@ const LibraryPage: React.FC = () => {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [readingBook, setReadingBook] = useState<Book | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
-  const [favoriteBooks, setFavoriteBooks] = useState<Book[]>([]);
+  const [_, setFavoriteBooks] = useState<Book[]>([]);
   // Placeholder remove; underscore to avoid unused param lint
   const { user } = useUser();
 

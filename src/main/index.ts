@@ -353,7 +353,7 @@ app.whenReady().then(() => {
   ipcMain.on('ping', () => console.log('pong'))
 
   // IPC handlers for PDF fetching
-  ipcMain.handle('fetch-pdf', async (event, url: string) => {
+  ipcMain.handle('fetch-pdf', async (_event, url: string) => {
     try {
       console.log('Fetching PDF from:', url);
       const response = await fetch(url);

@@ -3,7 +3,6 @@ import { IoPersonCircle, IoSettings } from 'react-icons/io5';
 import { CiLogout } from 'react-icons/ci';
 import { useAuth } from '../context/AuthContext';
 import { useUser } from '../context/UserContext';
-import menuicon from '../assets/menuicon.png';
 import bookicon from '../assets/bookicon.png';
 import hearticon from '../assets/hearticon.png';
 import cloudicon from '../assets/cloudicon.png';

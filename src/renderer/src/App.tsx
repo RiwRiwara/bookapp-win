@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, JSX } from 'react';
 import { Toaster } from 'react-hot-toast';
 import Sidebar from './components/Sidebar';
 import LoginPage from './pages/LoginPage';
@@ -24,14 +24,14 @@ const InnerApp: React.FC = () => {
   const [showPrivacyConsent, setShowPrivacyConsent] = useState(true);
   const [privacyConsentGiven, setPrivacyConsentGiven] = useState(false);
   const { isAuthenticated, loading } = useAuth();
-  const { startProtection, stopProtection, hasPermission, requestPermission, platformInfo } = useScreenshotProtection();
+  const { startProtection, stopProtection } = useScreenshotProtection();
 
   // Check if privacy consent was previously given
   useEffect(() => {
     // For development/testing: Always show privacy consent
     // Comment out the next line if you want to remember consent
     localStorage.removeItem('privacy-consent-given');
-    
+
     const consentGiven = localStorage.getItem('privacy-consent-given');
     if (consentGiven === 'true') {
       setPrivacyConsentGiven(true);
@@ -107,7 +107,8 @@ const InnerApp: React.FC = () => {
       return <ResetPasswordPage onBack={() => setAuthPage('login')} />;
   }
 
-  let content = null;
+  let content: JSX.Element | null = null;
+
   if (page === 'library') content = <LibraryPage />;
   else if (page === 'mylist') content = <MyListPage />;
   else if (page === 'mycloud') content = <MyCloudPage />;
