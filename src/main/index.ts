@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, systemPreferences, desktopCapturer } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, systemPreferences, desktopCapturer, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -20,7 +20,7 @@ class ScreenCaptureProtection {
   private static instance: ScreenCaptureProtection
   private isMonitoring = false
   private developmentMode = isDevelopment
-  
+
   // More conservative list for production, excluding common dev tools
   private suspiciousProcesses = [
     'obs', 'obs64', 'obs-studio', 'streamlabs', 'xsplit', 'bandicam', 'fraps',
@@ -39,7 +39,7 @@ class ScreenCaptureProtection {
 
   async checkMacOSScreenRecordingPermission(): Promise<boolean> {
     if (process.platform !== 'darwin') return true
-    
+
     try {
       const status = systemPreferences.getMediaAccessStatus('screen')
       return status === 'granted'
@@ -51,7 +51,7 @@ class ScreenCaptureProtection {
 
   async requestMacOSScreenRecordingPermission(): Promise<boolean> {
     if (process.platform !== 'darwin') return true
-    
+
     try {
       // This will prompt the user for permission
       const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1, height: 1 } })
@@ -111,7 +111,7 @@ class ScreenCaptureProtection {
       const command = process.platform === 'win32' ? 'tasklist' : 'ps aux'
       const { stdout } = await execAsync(command)
       const processes = stdout.toLowerCase()
-      
+
       return this.suspiciousProcesses.some(proc => processes.includes(proc))
     } catch (error) {
       console.error('[ScreenProtection] Error checking processes:', error)
@@ -124,7 +124,7 @@ class ScreenCaptureProtection {
       const command = process.platform === 'win32' ? 'tasklist' : 'ps aux'
       const { stdout } = await execAsync(command)
       const processes = stdout.toLowerCase()
-      
+
       const detected = processNames.find(proc => processes.includes(proc))
       if (detected) {
         console.log(`[ScreenProtection] Detected process: ${detected}`)
@@ -146,7 +146,7 @@ class ScreenCaptureProtection {
         'ScreenSearch', 'Skitch', 'Snagit', 'CloudApp', 'Droplr',
         'Monosnap', 'LightShot', 'Gyazo', 'Capto'
       ]
-      
+
       for (const process of screenRecordingProcesses) {
         try {
           const { stdout } = await execAsync(`pgrep -f "${process}"`)
@@ -201,21 +201,24 @@ class ScreenCaptureProtection {
     }
   }
 
+  private detectedProcess: string = ''
+
   private async detectWindowsScreenCapture(): Promise<boolean> {
     try {
       // Check for active screen recording processes
       const { stdout } = await execAsync('wmic process get name,processid')
       const processes = stdout.toLowerCase()
-      
+
       // Check for known screen capture processes
-      const captureProcesses = ['dwm.exe', 'winlogon.exe']
-      const suspiciousActivity = captureProcesses.some(proc => {
+      const captureProcesses = ['winlogon.exe']
+      const detectedProc = captureProcesses.find(proc => {
         const regex = new RegExp(proc, 'i')
         return regex.test(processes)
       })
 
-      if (suspiciousActivity) {
-        console.log('[ScreenProtection] Potential screen capture detected on Windows')
+      if (detectedProc) {
+        this.detectedProcess = detectedProc
+        console.log(`[ScreenProtection] Potential screen capture detected on Windows: ${detectedProc}`)
         return true
       }
 
@@ -231,23 +234,23 @@ class ScreenCaptureProtection {
       console.log('[ScreenProtection] Already monitoring, skipping start')
       return
     }
-    
+
     // Check if screen protection is disabled via environment variable
     if (process.env.DISABLE_SCREEN_PROTECTION === 'true') {
       console.log('[ScreenProtection] Screen protection disabled via environment variable')
       this.isMonitoring = true // Mark as monitoring to prevent repeated attempts
       return
     }
-    
+
     this.isMonitoring = true
     console.log(`[ScreenProtection] Starting screen capture monitoring (${this.developmentMode ? 'development' : 'production'} mode)`)
-    
+
     // Check every 2 seconds (or 5s in development for better responsiveness)
     const checkInterval = this.developmentMode ? 5000 : 2000 // 5s in dev, 2s in prod
     screenCaptureCheckInterval = setInterval(async () => {
       const captureDetected = await this.detectScreenCapture()
       if (captureDetected) {
-        this.handleScreenCaptureDetected()
+        await this.handleScreenCaptureDetected()
       }
     }, checkInterval)
   }
@@ -257,28 +260,46 @@ class ScreenCaptureProtection {
       console.log('[ScreenProtection] Already stopped, skipping stop')
       return
     }
-    
+
     this.isMonitoring = false
     console.log('[ScreenProtection] Stopping screen capture monitoring')
-    
+
     if (screenCaptureCheckInterval) {
       clearInterval(screenCaptureCheckInterval)
       screenCaptureCheckInterval = null
     }
   }
 
-  private handleScreenCaptureDetected(): void {
-    console.log('[ScreenProtection] SECURITY ALERT: Screen capture detected! Closing application...')
-    
-    // Notify renderer process
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('screen-capture-detected')
-    }
-    
-    // Close app immediately
-    setTimeout(() => {
+  private async handleScreenCaptureDetected(): Promise<void> {
+    console.log('[ScreenProtection] SECURITY ALERT: Screen capture detected!')
+
+    // Stop monitoring to prevent multiple dialogs
+    this.stopMonitoring()
+
+    // Show dialog to user explaining why the app is closing
+    const detectedInfo = this.detectedProcess ? `\n\nDetected process: ${this.detectedProcess}` : ''
+    const result = await dialog.showMessageBox(mainWindow!, {
+      type: 'warning',
+      title: 'Security Alert - Screen Capture Detected',
+      message: 'Screen capture or recording activity has been detected',
+      detail: `For security reasons, this application must close when screen recording is detected. This helps protect sensitive content from unauthorized capture.${detectedInfo}\n\nThe application will now close to ensure content security.`,
+      buttons: ['OK', 'Cancel'],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true
+    })
+
+    // Close app after user acknowledges
+    if (result.response === 0) {
+      console.log('[ScreenProtection] User acknowledged security alert, closing application')
       app.quit()
-    }, 100)
+    } else {
+      console.log('[ScreenProtection] User cancelled, but app will close anyway for security')
+      // Still close for security, but give user a moment
+      setTimeout(() => {
+        app.quit()
+      }, 1000)
+    }
   }
 }
 
