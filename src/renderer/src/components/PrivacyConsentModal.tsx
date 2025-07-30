@@ -10,13 +10,13 @@ interface PrivacyConsentModalProps {
 }
 
 const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({ isOpen, onClose, onConsent }) => {
-  const { 
-    hasPermission, 
-    platformInfo, 
-    requestPermission, 
-    startProtection 
+  const {
+    hasPermission,
+    platformInfo,
+    requestPermission,
+    startProtection
   } = useScreenshotProtection();
-  
+
   const [isRequestingPermission, setIsRequestingPermission] = useState<boolean>(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [permissionRequested, setPermissionRequested] = useState<boolean>(false);
@@ -24,11 +24,11 @@ const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({ isOpen, onClo
   const requestScreenPermission = async () => {
     setIsRequestingPermission(true);
     setPermissionError(null);
-    
+
     try {
       const granted = await requestPermission();
       setPermissionRequested(true);
-      
+
       if (granted) {
         toast.success('Screen recording permission granted!', {
           duration: 3000,
@@ -56,7 +56,7 @@ const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({ isOpen, onClo
     // Store consent in localStorage
     localStorage.setItem('privacy-consent-given', 'true');
     localStorage.setItem('privacy-consent-date', new Date().toISOString());
-    
+
     // Start screen protection
     try {
       await startProtection();
@@ -67,7 +67,7 @@ const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({ isOpen, onClo
     } catch (error) {
       console.error('[PrivacyConsent] Error starting protection:', error);
     }
-    
+
     onConsent(true);
     onClose();
   };
@@ -172,7 +172,14 @@ const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({ isOpen, onClo
                     <button
                       onClick={requestScreenPermission}
                       disabled={isRequestingPermission}
-                      className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 text-sm"
+                      // color style css
+                      style={{
+                        backgroundColor: 'orange',
+                        color: 'white',
+                        borderRadius: '4px',
+                        padding: '8px 16px',
+                        cursor: 'pointer',
+                      }}
                     >
                       {isRequestingPermission ? 'Requesting...' : 'Grant Permission'}
                     </button>
@@ -217,8 +224,8 @@ const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({ isOpen, onClo
               <div>
                 <p className="font-medium text-red-900">Important Security Notice</p>
                 <p className="text-sm text-red-700 mt-1">
-                  If screen capture or recording is detected while using this application, 
-                  the app will immediately close to protect your content. Make sure to save 
+                  If screen capture or recording is detected while using this application,
+                  the app will immediately close to protect your content. Make sure to save
                   your work regularly.
                 </p>
               </div>
@@ -246,7 +253,7 @@ const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({ isOpen, onClo
               </div>
             </div>
           )}
-          
+
           <div className="flex justify-between items-center">
             <button
               onClick={handleDecline}
@@ -257,7 +264,13 @@ const PrivacyConsentModal: React.FC<PrivacyConsentModalProps> = ({ isOpen, onClo
             <button
               onClick={handleAccept}
               disabled={isMacOS && !hasPermission}
-              className="px-8 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              style={{
+                backgroundColor: 'blue',
+                color: 'white',
+                borderRadius: '4px',
+                padding: '8px 16px',
+                cursor: 'pointer',
+              }}
             >
               {isMacOS && !hasPermission ? 'Grant Permission First' : 'Next →'}
             </button>
