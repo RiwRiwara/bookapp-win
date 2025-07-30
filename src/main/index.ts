@@ -210,7 +210,7 @@ class ScreenCaptureProtection {
       const processes = stdout.toLowerCase()
 
       // Check for known screen capture processes
-      const captureProcesses = ['winlogon.exe']
+      const captureProcesses = []
       const detectedProc = captureProcesses.find(proc => {
         const regex = new RegExp(proc, 'i')
         return regex.test(processes)
