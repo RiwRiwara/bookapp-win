@@ -13,6 +13,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { UserProvider } from './context/UserContext';
 import { useScreenshotProtection } from './hooks/useScreenshotProtection';
 import ProtectionStatus from './components/ProtectionStatus';
+import PrivacyConsentModal from './components/PrivacyConsentModal';
 
 
 const InnerApp: React.FC = () => {
@@ -20,12 +21,27 @@ const InnerApp: React.FC = () => {
   const [authPage, setAuthPage] = useState<
     'login' | 'register' | 'forgot' | 'reset'
   >('login');
+  const [showPrivacyConsent, setShowPrivacyConsent] = useState(true);
+  const [privacyConsentGiven, setPrivacyConsentGiven] = useState(false);
   const { isAuthenticated, loading } = useAuth();
-  const { startProtection, stopProtection } = useScreenshotProtection();
+  const { startProtection, stopProtection, hasPermission, requestPermission, platformInfo } = useScreenshotProtection();
 
-  // Start/stop protection based on authentication status
+  // Check if privacy consent was previously given
   useEffect(() => {
-    if (isAuthenticated) {
+    // For development/testing: Always show privacy consent
+    // Comment out the next line if you want to remember consent
+    localStorage.removeItem('privacy-consent-given');
+    
+    const consentGiven = localStorage.getItem('privacy-consent-given');
+    if (consentGiven === 'true') {
+      setPrivacyConsentGiven(true);
+      setShowPrivacyConsent(false);
+    }
+  }, []);
+
+  // Start/stop protection based on authentication status and consent
+  useEffect(() => {
+    if (isAuthenticated && privacyConsentGiven) {
       startProtection();
     } else {
       stopProtection();
@@ -35,13 +51,48 @@ const InnerApp: React.FC = () => {
     return () => {
       stopProtection();
     };
-  }, [isAuthenticated, startProtection, stopProtection]);
+  }, [isAuthenticated, privacyConsentGiven, startProtection, stopProtection]);
+
+  // Handle privacy consent
+  const handlePrivacyConsent = (granted: boolean) => {
+    setPrivacyConsentGiven(granted);
+    setShowPrivacyConsent(false);
+    if (granted) {
+      localStorage.setItem('privacy-consent-given', 'true');
+      localStorage.setItem('privacy-consent-date', new Date().toISOString());
+    } else {
+      localStorage.setItem('privacy-consent-given', 'false');
+      // If consent is not given, close the app
+      if (window.electron?.ipcRenderer?.send) {
+        window.electron.ipcRenderer.send('app-quit');
+      }
+    }
+  };
+
+  const handleClosePrivacyModal = () => {
+    // Don't allow closing without making a choice
+    // Modal should handle this internally
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         Loading...
       </div>
+    );
+  }
+
+  // Show privacy consent modal first
+  if (showPrivacyConsent) {
+    return (
+      <>
+        <PrivacyConsentModal
+          isOpen={showPrivacyConsent}
+          onClose={handleClosePrivacyModal}
+          onConsent={handlePrivacyConsent}
+        />
+        <Toaster position="top-right" />
+      </>
     );
   }
 

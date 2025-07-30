@@ -195,11 +195,10 @@ const ReaderPage: React.FC<ReaderPageProps> = ({ book, onBack }) => {
             // Use Electron IPC to fetch PDF and bypass CORS
             if (window.electron?.ipcRenderer?.invoke) {
               console.log('[ReaderPage] Fetching PDF via Electron IPC...');
-              const result = await window.electron.ipcRenderer.invoke('fetch-pdf', remoteUrl);
+              const uint8Array = await window.electron.ipcRenderer.invoke('fetch-pdf', remoteUrl);
               
-              if (result.success) {
-                // Convert array back to Uint8Array and create blob
-                const uint8Array = new Uint8Array(result.data);
+              if (uint8Array && uint8Array.length > 0) {
+                // Create blob from the Uint8Array
                 const pdfBlob = new Blob([uint8Array], { type: 'application/pdf' });
                 objectUrl = URL.createObjectURL(pdfBlob);
                 setBookUrl(objectUrl);
@@ -209,7 +208,7 @@ const ReaderPage: React.FC<ReaderPageProps> = ({ book, onBack }) => {
                 setNumPages(loadedPdf.numPages);
                 console.log('[ReaderPage] PDF loaded successfully via IPC, pages:', loadedPdf.numPages);
               } else {
-                throw new Error(`IPC fetch failed: ${result.error}`);
+                throw new Error('IPC fetch returned empty data');
               }
             } else {
               // Fallback for non-Electron environment (browser)

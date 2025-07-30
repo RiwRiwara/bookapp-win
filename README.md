@@ -32,3 +32,16 @@ $ npm run build:mac
 # For Linux
 $ npm run build:linux
 ```
+
+
+### Run without protection
+
+```bash
+$ ./dev-no-protection.sh
+```
+
+### Run with protection
+
+```bash
+$ npm run dev
+```
